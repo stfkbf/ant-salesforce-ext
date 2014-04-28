@@ -17,4 +17,26 @@ The tasks rely on a folder structure to extract and stage metadata:
     | `-upsert   git.output.source
     |-temp       git.temp
 
+A typical flow to extract metadata using, for example, Hudson might be:
+
+    ant extractBranch commitAndPushBranch -Dbranch=master
+
+A typical flow to deploy changes from one org to another (assuming a deployment from master to patch):
+
+    # Extract metadata from the source org into the master branch
+    ant extractBranch commitAndPushBranch -Dbranch=master
+
+    # Extract metadata from the target org into the patch branch
+    ant extractBranch commitAndPushBranch -Dbranch=patch
+
+    # Merge master into patch
+    git merge master
+
+    # Create a package containing the differences prepared for deployment
+    ant createPackage -Dbranch=patch
+
+    # Deploy to the target org
+    ant deployToOrg -Dbranch=patch
+
+The above would require the properties file build.properties.master to specify the source org and build.properties.patch the target org. Further the above assumes patch is a branch from master.
 
