@@ -14,6 +14,12 @@ import org.apache.commons.io.FileUtils;
 
 import com.sforce.ws.bind.XMLizable;
 
+/*
+ * This class is from the Salesforce Build Tool Set. 
+ * 
+ * The original author unfortunately is not known.
+ * 
+ */
 public abstract class DiffNode implements Comparable<DiffNode>{
 	static Map<String, List<String>> classToGetterMap = new HashMap<String, List<String>>();
 	protected String name;

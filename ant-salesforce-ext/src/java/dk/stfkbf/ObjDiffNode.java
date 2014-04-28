@@ -10,6 +10,12 @@ import org.apache.commons.io.FileUtils;
 
 import com.sforce.ws.bind.XMLizable;
 
+/*
+ * This class is from the Salesforce Build Tool Set. 
+ * 
+ * The original author unfortunately is not known.
+ * 
+ */
 public class ObjDiffNode extends DiffNode {
 	private Set<AttrDiffNode> attrDiffs = new TreeSet<AttrDiffNode>();
 

@@ -3,7 +3,6 @@ package dk.stfkbf;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
@@ -36,8 +35,12 @@ import com.sforce.ws.bind.TypeMapper;
 import com.sforce.ws.bind.XMLizable;
 import com.sforce.ws.parser.XmlInputStream;
 
-import name.fraser.neil.plaintext.*;
-
+/*
+ * This class is from the Salesforce Build Tool Set. 
+ * 
+ * The original author unfortunately is not known.
+ * 
+ */
 public class ForceDiff extends Task{
 	private static final String CONTENT_FILENAME_PATTERN = "-meta.xml";
 	private static final Pattern XML_PATTERN = Pattern.compile("<?xml.*?>");
