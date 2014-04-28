@@ -2,7 +2,7 @@
 #
 
 # Specify the login credentials for the desired Salesforce organization
-sf.username =  
+sf.username = 
 sf.password = 
 
 # Use 'https://login.salesforce.com' for production or developer edition (the default if not specified).
@@ -13,9 +13,24 @@ sf.maxPoll = 20
 
 # If your network requires an HTTP proxy, see http://ant.apache.org/manual/proxy.html for configuration.
 #
-package.output = .
-git.root = /Users/blixen/git/dev-env
-git.source = /Users/blixen/git/dev-env/project/src
-git.temp = /Users/blixen/Developer/salesforce_ant_29/temp
-git.output = /Users/blixen/Developer/salesforce_ant_29/output
-git.output.source = /Users/blixen/Developer/salesforce_ant_29/output/upsert
+
+# Folder into which package.xml will be written, and from where it will be read
+package.output = /parent
+
+# Local git repository that will hold the Salesforce metadata
+git.root = /parent/git
+
+# Metadata source folder within the repository
+git.source = /parent/git/src
+
+# Folder for temporary files
+git.temp = /parent/temp
+
+# Folder to hold metadata staged for deployment
+git.output = /parent/output
+
+# Folder to hold milestones staged for deployment
+git.output.ms = /parent/output_ms
+
+# Metadata source folder
+git.output.source = /parent/output/upsert

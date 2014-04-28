@@ -1,7 +1,41 @@
-<project name="Sample usage of Salesforce Ant tasks" default="generatePackage" basedir="." xmlns:sf="antlib:com.salesforce">
+<project name="A set of Salesforce Ant tasks" default="extractBranch" basedir="." xmlns:sf="antlib:com.salesforce">
 
     <property file="build.properties.${branch}"/>
     <property environment="env"/>
+
+    <taskdef resource="org/eclipse/jgit/ant/ant-tasks.properties">
+       <classpath>
+         <pathelement location="lib/org.eclipse.jgit-3.3.0.201403021825-r.jar"/>
+         <pathelement location="lib/org.eclipse.jgit.ant-3.3.0.201403021825-r.jar"/>         
+       </classpath>
+   </taskdef>
+
+   <taskdef uri="antlib:com.salesforce" resource="com/salesforce/antlib.xml" classpath="lib/ant-salesforce-30.jar"/>
+
+   <taskdef name="forceDiff" classname="dk.stfkbf.ForceDiff" >
+     <classpath>
+      <fileset dir="lib">
+        <include name="**/diff_match_patch-current.jar"/> 
+        <include name="**/commons-io-2.4.jar"/> 
+        <include name="**/force-metadata-api-30.0.0.jar"/> 
+        <include name="**/force-wsc-31.0.0.jar"/>        
+        <include name="**/ant-salesforce-ext-30.jar"/>
+      </fileset>
+    </classpath>
+   </taskdef>
+
+    <macrodef name="git">
+       <attribute name="command" />
+       <attribute name="dir" default="" />
+       <element name="args" optional="true" />
+       <sequential>
+         <echo message="git @{command}" />
+	 <exec executable="git" dir="@{dir}">
+	    <arg value="@{command}" />
+	    <args/>
+	 </exec>
+	</sequential>
+    </macrodef>
     
     <taskdef name="generatePackage" classname="dk.stfkbf.GeneratePackageOrg" >
      <classpath>
@@ -12,14 +46,6 @@
     </taskdef>
 
     <taskdef name="generatePackageFileset" classname="dk.stfkbf.GeneratePackageFileset" >
-     <classpath>
-      <fileset dir="lib">
-        <include name="**/*.jar"/>
-      </fileset>
-    </classpath>
-    </taskdef>
-
-    <taskdef name="buildFileset" classname="dk.stfkbf.BuildFileset" >
      <classpath>
       <fileset dir="lib">
         <include name="**/*.jar"/>
@@ -43,34 +69,175 @@
     </classpath>
     </taskdef>
     
-    <taskdef resource="org/eclipse/jgit/ant/ant-tasks.properties">
-       <classpath>
-         <pathelement location="lib/org.eclipse.jgit-3.3.0.201403021825-r.jar"/>
-         <pathelement location="lib/org.eclipse.jgit.ant-3.3.0.201403021825-r.jar"/>         
-       </classpath>
-   </taskdef>
+    <!-- Ant tasks to support a metadata migration flow using git -->
+    
+    <target name="switchBranch">
+	  <git-checkout src="${git.root}" branch="${branch}" />
+    </target>
+        
+    <target name="extractBranch">
+      <!-- Switch to the appropriate branch in the git repository -->
+      <git-checkout src="${git.root}" branch="${branch}" />
 
-   <taskdef name="forceDiff" classname="dk.stfkbf.ForceDiff" >
-     <classpath>
-      <fileset dir="lib">
-        <include name="**/diff_match_patch-current.jar"/> 
-        <include name="**/commons-io-2.4.jar"/> 
-        <include name="**/force-metadata-api-30.0.0.jar"/> 
-        <include name="**/force-wsc-31.0.0.jar"/>        
-        <include name="**/salesforce-package.jar"/>
-      </fileset>
-    </classpath>
-   </taskdef>
-
-   <taskdef uri="antlib:com.salesforce" resource="com/salesforce/antlib.xml" classpath="lib/ant-salesforce-30.jar"/>
-
-   <target name="generatePackage">
+      <!-- Generate a package.xml for the source org -->
       <generatePackage username="${sf.username}" 
-   		       password="${sf.password}" 
-      		       authEndpoint="https://login.salesforce.com/services/Soap/u/30.0" 
+      	               password="${sf.password}" 
+      		           authEndpoint="${sf.serverurl}/services/Soap/u/30.0" 
+      		           outputPath="${package.output}" />
+
+      <!-- Clean up temporary directories -->      				       
+      <delete includeemptydirs="true">  
+        <fileset dir="${git.temp}" includes="**/*"/>  
+	  </delete>  
+
+      <!-- Retrieve source org metadata -->	  
+      <sf:retrieve username="${sf.username}" 
+      			   password="${sf.password}" 
+      			   serverurl="${sf.serverurl}" 
+      			   maxPoll="${sf.maxPoll}" 
+      			   retrieveTarget="${git.temp}" 
+      			   unpackaged="${package.output}/package.xml"/>      				       
+
+      <!-- Delete any files that are in the git repository but not the source org -->
+      <deleteFromGit sourcePath="${git.temp}" 
+      	             targetPath="${git.source}" 
+      		         gitRoot="${git.root}" />
+
+      <!-- Copy the extracted files into the git repository -->      				   
+	  <copy todir="${git.source}">
+        <fileset dir="${git.temp}"/>
+      </copy>      				 
+    </target>
+    
+    <target name="commitAndPushBranch">
+      <echo message="Commiting all changes to ${branch}" />
+      <!-- Add any new files -->      
+      <git command="add" dir="${git.root}">
+        <args>
+	      <arg value="-A" />
+	    </args>
+      </git>
+      
+      <!-- Commit all files -->            
+      <git command="commit" dir="${git.root}">
+        <args>
+	      <arg value="-a" />
+          <arg value="-m ${branch}" />
+	    </args>
+      </git>
+
+      <!--Push to origin, remove this if the repository has no remote origin -->
+      <git command="push" dir="${git.root}">
+        <args>
+	      <arg value="origin" />
+	      <arg value="${branch}" />
+	    </args>
+      </git>
+    </target>    
+    
+    <target name="createPackage">
+      <!-- Clean up temporary directories -->
+      <delete includeemptydirs="true">  
+        <fileset dir="${git.temp}" includes="**/*"/>  
+      </delete>  
+
+      <delete includeemptydirs="true">  
+        <fileset dir="${git.output}" includes="**/*"/>  
+      </delete>  
+
+      <delete includeemptydirs="true">  
+        <fileset dir="${git.output.ms}" includes="**/*"/>  
+      </delete>
+
+      <delete includeemptydirs="true">  
+        <fileset dir="${git.root}" includes="**/*.orig"/>  
+      </delete>  
+
+      <!-- Generate a package.xml file for the target org -->
+      <generatePackage username="${sf.username}" 
+      		       password="${sf.password}" 
+      		       authEndpoint="${sf.serverurl}/services/Soap/u/30.0" 
+      		       outputPath="${git.temp}" />
+
+      <!-- Retrieve the target org metadata -->
+      <sf:retrieve username="${sf.username}" 
+      			   password="${sf.password}" 
+      			   serverurl="${sf.serverurl}" 
+      			   maxPoll="${sf.maxPoll}" 
+      			   retrieveTarget="${git.temp}" 
+      			   unpackaged="${git.temp}/package.xml"/>  
+
+      <!-- Compare the target org metadata against the git repository and extract the 
+           differences -->      
+      <forceDiff sourceDir="${git.source}" targetDir="${git.temp}" outputDir="${git.output}" metadataTypes="all" />
+
+      <!-- Compare the target org metadata against the git repository and extract the 
+           differences, looking only at Milestones -->      
+      <forceDiff sourceDir="${git.source}" targetDir="${git.temp}" outputDir="${git.output.ms}" metadataTypes="milestoneTypes" />
+
+      <!-- Execute regular expressions in prepareFileset.properties against the metadata and
+           correct the versioning of flows. -->      
+      <prepareFileset filesetPath="${git.output.source}" 
+      		          targetPath="${git.temp}"
+                      properties="prepareFileset.properties" />
+
+      <!-- Generate a package.xml reflecting any potential new flow versioning -->
+      <generatePackageFileset username="${sf.username}" 
+      			      password="${sf.password}" 
+      			      authEndpoint="${sf.serverurl}/services/Soap/u/30.0" 
+      			      outputPath="${git.output.source}" 
+      			      repositoryPath="${git.output.source}"/>
+      
+    </target>
+
+    <target name="cleanup">
+      <delete includeemptydirs="true">  
+        <fileset dir="${git.root}" includes="**/*.orig"/>  
+	  </delete>  
+    </target>
+    
+    <target name="deployToOrg">
+    
+      <!-- Deploy Milestones first -->
+      <sf:deploy username="${sf.username}" 
+      			 password="${sf.password}" 
+      			 serverurl="${sf.serverurl}" 
+      			 maxPoll="${sf.maxPoll}" 
+      			 deployRoot="${git.output.ms}/upsert"/>
+     
+     <!-- Deploy the rest of the metadata -->
+     <sf:deploy username="${sf.username}" 
+      			 password="${sf.password}" 
+      			 serverurl="${sf.serverurl}" 
+      			 maxPoll="${sf.maxPoll}" 
+      			 deployRoot="${git.output}/upsert"/>
+      			 
+     <!-- Deploy destructive changes -->      			 
+      <sf:deploy username="${sf.username}" 
+      			 password="${sf.password}" 
+      			 serverurl="${sf.serverurl}" 
+      			 maxPoll="${sf.maxPoll}" 
+      			 deployRoot="${git.output}/delete"/>
+    </target>
+
+    <!-- Example tasks -->
+
+    <target name="generatePackage">
+      <generatePackage 
+                   username="${sf.username}" 
+   		           password="${sf.password}" 
+      		       authEndpoint="${sf.serverurl}/services/Soap/u/30.0" 
       		       outputPath="${package.output}" />
     </target>
 
+    <target name="generatePackageFileset">
+      <generatePackageFileset username="${sf.username}" 
+      			      password="${sf.password}" 
+      			      authEndpoint="${sf.serverurl}/services/Soap/u/30.0" 
+      			      outputPath="${git.output.source}" 
+      				  repositoryPath="${git.output.source}"/>
+    </target>  
+    
     <target name="retrieve">
       <delete includeemptydirs="true">  
         <fileset dir="${git.temp}" includes="**/*"/>  
@@ -81,7 +248,7 @@
     		   serverurl="${sf.serverurl}" 
     		   maxPoll="${sf.maxPoll}" 
     		   retrieveTarget="${git.temp}" 
-    		   unpackaged="package.xml"/>
+    		   unpackaged="${package.output}/package.xml"/>
     </target>
     
     <target name="moveToGit">
@@ -92,112 +259,4 @@
         <fileset dir="${git.temp}"/>
       </copy>      				 
     </target>
-
-    <target name="switchBranch">
-	  <git-checkout src="${git.root}" branch="${branch}" />
-    </target>
-        
-    <target name="extractBranch">
-	  <git-checkout src="${git.root}" branch="${branch}" />
-	      
-      <generatePackage username="${sf.username}" 
-      	               password="${sf.password}" 
-      		       authEndpoint="https://login.salesforce.com/services/Soap/u/30.0" 
-      		       outputPath="${package.output}" />
-      				       
-      <delete includeemptydirs="true">  
-        <fileset dir="${git.temp}" includes="**/*"/>  
-	  </delete>  
-	  
-      <sf:retrieve username="${sf.username}" 
-      			   password="${sf.password}" 
-      			   serverurl="${sf.serverurl}" 
-      			   maxPoll="${sf.maxPoll}" 
-      			   retrieveTarget="${git.temp}" 
-      			   unpackaged="package.xml"/>      				       
-      				       
-      <deleteFromGit sourcePath="${git.temp}" 
-      	             targetPath="${git.source}" 
-      		     gitRoot="${git.root}" />
-      				   
-	  <copy todir="${git.source}">
-        <fileset dir="${git.temp}"/>
-      </copy>      				 
-    </target>
-    
-    <target name="createPackage">
-     
-      <delete includeemptydirs="true">  
-        <fileset dir="${git.temp}" includes="**/*"/>  
-      </delete>  
-
-      <delete includeemptydirs="true">  
-        <fileset dir="${git.output}" includes="**/*"/>  
-      </delete>  
-
-      <delete includeemptydirs="true">  
-        <fileset dir="${git.root}" includes="**/*.orig"/>  
-      </delete>  
-
-      <generatePackage username="${sf.username}" 
-      		       password="${sf.password}" 
-      		       authEndpoint="https://login.salesforce.com/services/Soap/u/30.0" 
-      		       outputPath="${git.temp}" />
-      				       	  
-      <sf:retrieve username="${sf.username}" 
-      			   password="${sf.password}" 
-      			   serverurl="${sf.serverurl}" 
-      			   maxPoll="${sf.maxPoll}" 
-      			   retrieveTarget="${git.temp}" 
-      			   unpackaged="package.xml"/>  
-      
-      <forceDiff sourceDir="${git.source}" targetDir="${git.temp}" outputDir="${git.output}" metadataTypes="all" />
-
-      <forceDiff sourceDir="${git.source}" targetDir="${git.temp}" outputDir="${git.output.ms}" metadataTypes="milestoneTypes" />
-
-      <prepareFileset filesetPath="${git.output.source}" 
-      		      targetPath="${git.temp}"
-                      properties="prepareFileset.properties" />
-
-
-      <generatePackageFileset username="${sf.username}" 
-      			      password="${sf.password}" 
-      			      authEndpoint="https://login.salesforce.com/services/Soap/u/30.0" 
-      			      outputPath="${git.output.source}" 
-      			      repositoryPath="${git.output.source}"/>
-      
-    </target>
-
-    <target name="generatePackageFileset">
-      <generatePackageFileset username="${sf.username}" 
-      			      password="${sf.password}" 
-      			      authEndpoint="https://login.salesforce.com/services/Soap/u/30.0" 
-      			      outputPath="${git.output.source}" 
-      						repositoryPath="${git.output.source}"/>
-    </target>
-
-    <target name="cleanup">
-      <delete includeemptydirs="true">  
-        <fileset dir="${git.root}" includes="**/*.orig"/>  
-	  </delete>  
-    </target>
-    
-    <target name="deployToOrg">
-      <sf:deploy username="${sf.username}" 
-      			 password="${sf.password}" 
-      			 serverurl="${sf.serverurl}" 
-      			 maxPoll="${sf.maxPoll}" 
-      			 deployRoot="${git.output.ms}/upsert"/>
-     <sf:deploy username="${sf.username}" 
-      			 password="${sf.password}" 
-      			 serverurl="${sf.serverurl}" 
-      			 maxPoll="${sf.maxPoll}" 
-      			 deployRoot="${git.output}/upsert"/>
-      <sf:deploy username="${sf.username}" 
-      			 password="${sf.password}" 
-      			 serverurl="${sf.serverurl}" 
-      			 maxPoll="${sf.maxPoll}" 
-      			 deployRoot="${git.output}/delete"/>
-    </target>
-
 </project>
