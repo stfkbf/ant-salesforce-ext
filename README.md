@@ -21,7 +21,7 @@ A typical flow to extract metadata using, for example, Hudson might be:
 
     ant extractBranch commitAndPushBranch -Dbranch=master
 
-A typical flow to deploy changes from one org to another (assuming a deployment from master to patch):
+A typical flow to deploy changes, including sharing rules, milestone types, entitlement processes, flows and destructive changes, from one org to another (assuming a deployment from master to patch):
 
     # Extract metadata from the source org into the master branch
     ant extractBranch commitAndPushBranch -Dbranch=master
