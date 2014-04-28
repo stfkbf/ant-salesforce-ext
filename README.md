@@ -32,7 +32,8 @@ A typical flow to deploy changes from one org to another (assuming a deployment 
     # Merge master into patch
     git merge master
 
-    # Create a package containing the differences prepared for deployment
+    # Create a package containing the differences between patch and the target org
+    # prepared for deployment
     ant createPackage -Dbranch=patch
 
     # Deploy to the target org
