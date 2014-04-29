@@ -43,7 +43,7 @@ public class GeneratePackageOrg extends Task {
 			"Scontrol", "SecuritySettings", "SharingSet", "SiteDotCom", "Skill", "StaticResource", "Territory", "Translations", "Workflow", 
 			"AccountSharingRules", "CampaignSharingRules", "CaseSharingRules", "ContactSharingRules", "LeadSharingRules", "OpportunitySharingRules", "UserSharingRules", "EntitlementProcess");	
 
-	private List<String> ignoreTypes = Arrays.asList("InstalledPackage", "SynonymDictionary");
+	private List<String> ignoreTypes = Arrays.asList("InstalledPackage", "SynonymDictionary", "SiteDotCom");
 
 	private List<String> ignoreMembers = Arrays.asList("SiteChangelist", "unfiled$public");
 
