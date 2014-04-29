@@ -154,7 +154,7 @@ public class GeneratePackageOrg extends Task {
 						name = name + "Folder";
 
 					if (describeObject.getXmlName().equals("EmailTemplate"))
-						name = "EmailTemplate";
+						name = "EmailFolder";
 										
 					ArrayList<String> typeNames = new ArrayList<String>();
 			
@@ -200,6 +200,9 @@ public class GeneratePackageOrg extends Task {
 						
 						if (typeName.equals("ReportFolder") || typeName.equals("DashboardFolder") || typeName.equals("DocumentFolder"))
 							translatedTypeName = typeName.replace("Folder", "");
+						
+						if (typeName.equals("EmailFolder"))
+							translatedTypeName = "EmailTemplate";
 						
 						if (typeMembers.size() > 0)
 							typeMembersByType.put(translatedTypeName, typeMembers);
