@@ -39,5 +39,5 @@ A typical flow to deploy changes, including sharing rules, milestone types, enti
     # Deploy to the target org
     ant deployToOrg -Dbranch=patch
 
-The above would require the properties file build.properties.master to specify the source org and build.properties.patch the target org. Further the above asumes patch is a branch from master.
+The above would require the properties file build.properties.master to specify the source org and build.properties.patch the target org. Further, the above assumes patch is a branch from master.
 
