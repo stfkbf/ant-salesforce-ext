@@ -108,6 +108,18 @@
         <fileset dir="${git.temp}"/>
       </copy>      				 
     </target>
+
+    <target name="pullBranch">
+      <echo message="Fething and merging ${branch}" />
+
+      <!--Push to origin, remove this if the repository has no remote origin -->
+      <git command="pull" dir="${git.root}">
+        <args>
+	      <arg value="origin" />
+	      <arg value="${branch}" />
+	    </args>
+      </git>
+    </target>
     
     <target name="commitAndPushBranch">
       <echo message="Commiting all changes to ${branch}" />
