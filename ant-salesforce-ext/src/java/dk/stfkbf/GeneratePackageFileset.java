@@ -210,7 +210,10 @@ public class GeneratePackageFileset extends Task {
 					String folderName = folders[folders.length-2];
 					componentName = folderName + "/" + componentName;    
 					//If the folder itself has not been added, add the folder.
-					if (!packageTypeMembers.contains(folderName))
+					
+					File folderFile = new File(repositoryItem.getPath());
+					
+					if (!packageTypeMembers.contains(folderName) && folderFile.exists())
 						packageTypeMembers.add(folderName);
 				}
 				packageTypeMembers.add(componentName);
