@@ -67,7 +67,7 @@ public class DeleteFromGit {
 
 				File sourceFile = new File(targetFile.getAbsolutePath().replace(targetPath.getAbsolutePath(), sourcePath.getAbsolutePath()));
 
-				String fileName = targetFile.getAbsolutePath().replace(gitRootPath.getAbsolutePath() + "/", "");
+				String fileName = targetFile.getAbsolutePath().replace("\\", "/").replace(gitRootPath.getAbsolutePath().replace("\\","/") + "/", "");
 
 				if (targetFile.isFile() &&  !sourceFile.exists()) {
 					Set<String> list = git.status().addPath(fileName).call().getIgnoredNotInIndex();
