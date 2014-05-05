@@ -211,7 +211,7 @@ public class GeneratePackageFileset extends Task {
 					componentName = folderName + "/" + componentName;    
 					//If the folder itself has not been added, add the folder.
 					
-					File folderFile = new File(repositoryItem.getPath());
+					File folderFile = new File(repositoryItem.getPath().replace(repositoryItem.getName(), folderName + "-meta.xml"));
 					
 					if (!packageTypeMembers.contains(folderName) && folderFile.exists())
 						packageTypeMembers.add(folderName);
