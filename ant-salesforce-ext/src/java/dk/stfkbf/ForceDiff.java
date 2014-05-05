@@ -300,7 +300,9 @@ public class ForceDiff extends Task{
 		if (diffNode == topDiffNode && typeSet != null && typeSet.size() != 0) {
 			sourceOnly.retainAll(typeSet);
 			targetOnly.retainAll(typeSet);
+			
 		}
+		
 		TreeSet<String> commonSet = (TreeSet<String>)sourceOnly.clone();
 		commonSet.retainAll(targetOnly);
 		sourceOnly.removeAll(commonSet);

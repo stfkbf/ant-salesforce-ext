@@ -46,6 +46,8 @@ public class GeneratePackageOrg extends Task {
 	private List<String> ignoreTypes = Arrays.asList("InstalledPackage", "SynonymDictionary", "SiteDotCom");
 
 	private List<String> ignoreMembers = Arrays.asList("SiteChangelist", "unfiled$public");
+	
+	private List<String> ignoreNamespaces = Arrays.asList("NVMContactWorld", "pca");
 
 	private String username;
 	private String password;
@@ -180,8 +182,19 @@ public class GeneratePackageOrg extends Task {
 						System.out.println(typeName + " " + results.length);
 
 						for (FileProperties result : results){
+							String namespace = "";
+							
+							if (result.getFullName().contains("__"))
+								namespace = result.getFullName().split("__")[0];
+							
 							if (ignoreMembers.contains(result.getFullName()))
 								continue;
+							
+							// Ignore documents belonging to installed packages
+							// Other components should never change
+							if (typeName.startsWith("Document") && ignoreNamespaces.contains(namespace))
+									continue;
+							
 							typeMembers.add(result.getFullName());
 							if (describeObject.isInFolder()){
 								ListMetadataQuery folderQuery = new ListMetadataQuery();

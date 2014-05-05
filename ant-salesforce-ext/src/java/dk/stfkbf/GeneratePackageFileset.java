@@ -113,9 +113,11 @@ public class GeneratePackageFileset extends Task {
 			DescribeMetadataResult metadataDescribeResult = metadataConnection.describeMetadata(30.0); // TODO: Make version configurable / auto
 			for(DescribeMetadataObject describeObject : metadataDescribeResult.getMetadataObjects())
 			{
-				repositoryScanResult.metadataFolderBySuffix.put(describeObject.getSuffix(), describeObject);
+				// Use Directory Name and Suffix to ensure uniqueness (for example for the site suffix which occurs in SiteDotCom and Sites
+				repositoryScanResult.metadataFolderBySuffix.put(describeObject.getDirectoryName() + ":" + describeObject.getSuffix(), describeObject);
+				
 				if(describeObject.getMetaFile())
-					repositoryScanResult.metadataFolderBySuffix.put(describeObject.getSuffix() + "-meta.xml", describeObject);
+					repositoryScanResult.metadataFolderBySuffix.put(describeObject.getDirectoryName() + ":" + describeObject.getSuffix() + "-meta.xml", describeObject);
 			}
     	
 			scanRepository(repositoryPath, repositoryContainer, repositoryScanResult);	    		    	
@@ -209,6 +211,7 @@ public class GeneratePackageFileset extends Task {
 					String[] folders = repositoryItem.getPath().split("/");
 					String folderName = folders[folders.length-2];
 					componentName = folderName + "/" + componentName;    
+					
 					//If the folder itself has not been added, add the folder.
 					
 					File folderFile = new File(repositoryItem.getPath().replace(repositoryItem.getName(), folderName + "-meta.xml"));
@@ -221,7 +224,7 @@ public class GeneratePackageFileset extends Task {
 		}
 	}
 
-	private static void scanRepository(String repositoryPath, RepositoryItem repositoryContainer, RepositoryScanResult repositoryScanResult) throws Exception
+	private void scanRepository(String repositoryPath, RepositoryItem repositoryContainer, RepositoryScanResult repositoryScanResult) throws Exception
 	{
 		// Process files first
 		File root = new File(repositoryPath);
@@ -247,16 +250,31 @@ public class GeneratePackageFileset extends Task {
 					fileExtension = file.getName().substring(extensionPosition + 1);
 			}    
 			// Is this file extension recognised by Salesforce Metadata API?
-			DescribeMetadataObject metadataObject = repositoryScanResult.metadataFolderBySuffix.get(fileExtension);
+			File repository = new File(this.getRepositoryPath());
+			
+			// Remove the repository path and replace windows delimiters
+			String[] folders = file.getPath().replace(repository.getPath(),"").replace("\\", "/").split("/");
+						
+			DescribeMetadataObject metadataObject;
+			
+			// If we are in the sub folder of a folder, get the parent folder
+			if (folders.length > 3) {				
+				metadataObject = repositoryScanResult.metadataFolderBySuffix.get(folders[folders.length-3] + ":" + fileExtension);
+			// If we are just in the folder get the folder name
+			} else if (folders.length > 2) {
+				metadataObject = repositoryScanResult.metadataFolderBySuffix.get(folders[folders.length-2] + ":" + fileExtension);
+			} else {
+				metadataObject = null;
+			}
+			
 			if(metadataObject==null)
 			{
-				// Is this a Document file which supports any file extension?    			
-				String[] folders = file.getPath().split("/");
+				// Is this a Document file which supports any file extension?				
 				// A document file within a sub-directory of the 'documents' folder?
 				if(folders.length>3 && folders[folders.length-3].equals("documents"))
 				{
 					// Metadata describe for Document
-					metadataObject = repositoryScanResult.metadataFolderBySuffix.get(null);	
+					metadataObject = repositoryScanResult.metadataFolderBySuffix.get(folders[folders.length-3] + ":null");	
 				}
 				// A file within the root of the 'document' folder?
 				else if(folders.length>2 && folders[folders.length-2].equals("documents"))
