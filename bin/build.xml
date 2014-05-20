@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <project name="A set of Salesforce Ant tasks" default="extractBranch" basedir="." xmlns:sf="antlib:com.salesforce">
 
     <property file="build.properties.${branch}"/>
@@ -68,6 +69,14 @@
       </fileset>
     </classpath>
     </taskdef>
+
+    <taskdef name="deleteChangedCase" classname="dk.stfkbf.DeleteChangedCase" >
+     <classpath>
+      <fileset dir="lib">
+        <include name="**/*.jar"/>
+      </fileset>
+    </classpath>
+    </taskdef>
     
     <!-- Ant tasks to support a metadata migration flow using git -->
     
@@ -79,17 +88,17 @@
       <!-- Switch to the appropriate branch in the git repository -->
       <git-checkout src="${git.root}" branch="${branch}" />
 
-      <!-- Generate a package.xml for the source org -->
+      <!-- Generate a package.xml for the source org --> 
       <generatePackage username="${sf.username}" 
       	               password="${sf.password}" 
       		           authEndpoint="${sf.serverurl}/services/Soap/u/30.0" 
       		           outputPath="${package.output}" />
-
+     
       <!-- Clean up temporary directories -->      				       
       <delete includeemptydirs="true">  
         <fileset dir="${git.temp}" includes="**/*"/>  
 	  </delete>  
-
+  
       <!-- Retrieve source org metadata -->	  
       <sf:retrieve username="${sf.username}" 
       			   password="${sf.password}" 
@@ -97,6 +106,10 @@
       			   maxPoll="${sf.maxPoll}" 
       			   retrieveTarget="${git.temp}" 
       			   unpackaged="${package.output}/package.xml"/>      				       
+      
+      <!-- Delete any files that are in the git repository but not the source org -->
+      <deleteChangedCase sourcePath="${git.temp}" 
+      	                 targetPath="${git.source}" />
 
       <!-- Delete any files that are in the git repository but not the source org -->
       <deleteFromGit sourcePath="${git.temp}" 
@@ -104,7 +117,7 @@
       		         gitRoot="${git.root}" />
 
       <!-- Copy the extracted files into the git repository -->      				   
-	  <copy todir="${git.source}">
+	  <copy todir="${git.source}" >
         <fileset dir="${git.temp}"/>
       </copy>      				 
     </target>
@@ -119,7 +132,7 @@
 	      <arg value="${branch}" />
 	    </args>
       </git>
-    </target>
+    </target>    
     
     <target name="commitAndPushBranch">
       <echo message="Commiting all changes to ${branch}" />
@@ -148,11 +161,11 @@
     </target>    
     
     <target name="createPackage">
-      <!-- Clean up temporary directories -->
+      <!-- Clean up temporary directories --> 
       <delete includeemptydirs="true">  
         <fileset dir="${git.temp}" includes="**/*"/>  
       </delete>  
-
+      
       <delete includeemptydirs="true">  
         <fileset dir="${git.output}" includes="**/*"/>  
       </delete>  
@@ -178,7 +191,7 @@
       			   maxPoll="${sf.maxPoll}" 
       			   retrieveTarget="${git.temp}" 
       			   unpackaged="${git.temp}/package.xml"/>  
-
+      
       <!-- Compare the target org metadata against the git repository and extract the 
            differences -->      
       <forceDiff sourceDir="${git.source}" targetDir="${git.temp}" outputDir="${git.output}" metadataTypes="all" />
@@ -190,7 +203,7 @@
       <!-- Execute regular expressions in prepareFileset.properties against the metadata and
            correct the versioning of flows. -->      
       <prepareFileset filesetPath="${git.output.source}" 
-      		          targetPath="${git.temp}"
+      		      targetPath="${git.temp}"
                       properties="prepareFileset.properties" />
 
       <!-- Generate a package.xml reflecting any potential new flow versioning -->
