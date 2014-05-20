@@ -108,8 +108,8 @@
       			   unpackaged="${package.output}/package.xml"/>      				       
       
       <!-- Delete any files that are in the git repository but not the source org -->
-      <deleteChangedCase sourcePath="${git.temp}" 
-      	                 targetPath="${git.source}" />
+      <!--deleteChangedCase sourcePath="${git.temp}" 
+      	                 targetPath="${git.source}" /-->
 
       <!-- Delete any files that are in the git repository but not the source org -->
       <deleteFromGit sourcePath="${git.temp}" 
