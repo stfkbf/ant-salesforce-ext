@@ -1,11 +1,8 @@
 package dk.stfkbf;
 
 import java.io.File;
-import java.util.Set;
 
-import org.eclipse.jgit.api.Git;
-
-public class DeleteFromGit {
+public class DeleteChangedCase {
 
 	private String targetPath;
 	private String sourcePath;
@@ -36,8 +33,8 @@ public class DeleteFromGit {
 	}
 
 	public static void main(String[] args){
-		DeleteFromGit files = new DeleteFromGit();
-
+		DeleteChangedCase files = new DeleteChangedCase();
+		System.out.println("Checking for case changes");
 		files.setSourcePath(args[0]);
 		files.setTargetPath(args[1]);
 		files.setGitRoot(args[2]);
@@ -46,19 +43,16 @@ public class DeleteFromGit {
 
 	public void execute(){
 		try {
-			Git git = Git.open(new File(this.getGitRoot()));
-
-			traverse(git, new File(this.getTargetPath()));
+			traverse(new File(this.getTargetPath()));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
 	}
 
-	public void traverse(Git git, File file) throws Exception{		
+	public void traverse(File file) throws Exception{		
 		File targetDir = file;
 		
 		File sourcePath = new File(this.getSourcePath());
-		File gitRootPath = new File(this.getGitRoot());
 		File targetPath = new File(this.getTargetPath());
 		
 		if (file.exists()){
@@ -67,21 +61,13 @@ public class DeleteFromGit {
 
 				File sourceFile = new File(targetFile.getAbsolutePath().replace(targetPath.getAbsolutePath(), sourcePath.getAbsolutePath()));
 
-				String fileName = targetFile.getAbsolutePath().replace("\\", "/").replace(gitRootPath.getAbsolutePath().replace("\\","/") + "/", "");
-				
-				if ((targetFile.isFile() &&  !sourceFile.exists()) || !targetFile.getCanonicalFile().getName().equals(sourceFile.getCanonicalFile().getName())) {
-					Set<String> list = git.status().addPath(fileName).call().getIgnoredNotInIndex();
-
-					if (!targetFile.getCanonicalFile().getName().equals(sourceFile.getCanonicalFile().getName()) || !list.contains(fileName)){
-						System.out.println("Deleted: " + fileName);
-						git.rm().addFilepattern(fileName).call();
-					}					
+				if (!targetFile.getCanonicalFile().getName().equals(sourceFile.getCanonicalFile().getName())){
+					System.out.println("Casing changed: " + targetFile.getName() + " " + sourceFile.getName());
+					targetFile.delete();
 				}
-				
-				
 
 				if (targetFile.isDirectory()){
-					traverse(git, targetFile);
+					traverse(targetFile);
 				}
 			}		
 		}
