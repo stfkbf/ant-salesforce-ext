@@ -8,11 +8,11 @@
 	<classpathentry kind="lib" path="lib/ant.jar"/>
 	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
 	<classpathentry kind="lib" path="lib/diff_match_patch-current.jar"/>
-	<classpathentry kind="lib" path="lib/force-partner-api-30.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/force-metadata-api-31.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/force-partner-api-31.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/force-wsc-31.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.jgit-3.3.0.201403021825-r.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.6.2.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-simple-1.6.2.jar"/>
-	<classpathentry kind="lib" path="lib/force-metadata-api-30.0.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
