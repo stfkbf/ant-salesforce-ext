@@ -11,7 +11,7 @@
        </classpath>
    </taskdef>
 
-   <taskdef uri="antlib:com.salesforce" resource="com/salesforce/antlib.xml" classpath="lib/ant-salesforce-30.jar"/>
+   <taskdef uri="antlib:com.salesforce" resource="com/salesforce/antlib.xml" classpath="lib/ant-salesforce-31.jar"/>
 
    <taskdef name="forceDiff" classname="dk.stfkbf.ForceDiff" >
      <classpath>
