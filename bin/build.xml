@@ -11,7 +11,7 @@
        </classpath>
    </taskdef>
 
-   <taskdef uri="antlib:com.salesforce" resource="com/salesforce/antlib.xml" classpath="lib/ant-salesforce-30.jar"/>
+   <taskdef uri="antlib:com.salesforce" resource="com/salesforce/antlib.xml" classpath="lib/ant-salesforce-31.jar"/>
 
    <taskdef name="forceDiff" classname="dk.stfkbf.ForceDiff" >
      <classpath>
@@ -79,7 +79,25 @@
     </taskdef>
     
     <!-- Ant tasks to support a metadata migration flow using git -->
+    <target name="testDiff">
+          <forceDiff sourceDir="${git.source}" targetDir="${git.temp}" outputDir="D:\git\diff" metadataTypes="all" />
+    </target>
     
+    <target name="testDeploy">
+      <generatePackageFileset username="${sf.username}" 
+      			      password="${sf.password}" 
+      			      authEndpoint="${sf.serverurl}/services/Soap/u/30.0" 
+      			      outputPath="D:\git\test" 
+      			      repositoryPath="D:\git\test"/>
+      <!--
+      <sf:deploy username="${sf.username}" 
+      			 password="${sf.password}" 
+      			 serverurl="${sf.serverurl}" 
+      			 maxPoll="${sf.maxPoll}" 
+      			 deployRoot="D:\git\test"/>
+     -->  
+    </target>
+
     <target name="switchBranch">
 	  <git-checkout src="${git.root}" branch="${branch}" />
     </target>
@@ -205,7 +223,10 @@
       <prepareFileset filesetPath="${git.output.source}" 
       		      targetPath="${git.temp}"
                       properties="prepareFileset.properties" />
-
+      
+      <!-- Delete the appMenus -->
+      <delete dir="${git.output.source}/appMenus"/>  
+      
       <!-- Generate a package.xml reflecting any potential new flow versioning -->
       <generatePackageFileset username="${sf.username}" 
       			      password="${sf.password}" 

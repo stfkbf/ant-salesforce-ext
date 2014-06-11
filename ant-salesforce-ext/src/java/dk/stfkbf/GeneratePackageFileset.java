@@ -67,11 +67,11 @@ public class GeneratePackageFileset extends Task {
 	public static void main(String[] args){
 		GeneratePackageFileset builder = new GeneratePackageFileset();
 		
-		builder.setUsername("");
-		builder.setPassword("");
-		builder.setAuthEndpoint("");
-		builder.setOutputPath("");
-		builder.setRepositoryPath("");
+		builder.setUsername("git.user@fca.org.uk.prddeptest");
+		builder.setPassword("mrhudson$123aqwV7rDrrUUNm2Rwdod3EwPE");
+		builder.setAuthEndpoint("https://test.salesforce.com/services/Soap/u/30.0");
+		builder.setOutputPath("D:/git/output/upsert");
+		builder.setRepositoryPath("D:/git/output/upsert");
 		
 		builder.execute();
 	}
@@ -214,7 +214,7 @@ public class GeneratePackageFileset extends Task {
 					
 					//If the folder itself has not been added, add the folder.
 					
-					File folderFile = new File(repositoryItem.getPath().replace(folderName, "").replace(repositoryItem.getName(), folderName + "-meta.xml"));
+					File folderFile = new File(repositoryItem.getPath().replace(repositoryItem.getName(), "").replace(folderName, "") + folderName + "-meta.xml");
 					
 					if (!packageTypeMembers.contains(folderName) && folderFile.exists())
 						packageTypeMembers.add(folderName);
