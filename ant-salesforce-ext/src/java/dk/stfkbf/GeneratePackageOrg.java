@@ -45,7 +45,7 @@ public class GeneratePackageOrg extends Task {
 
 	private List<String> ignoreTypes = Arrays.asList("InstalledPackage", "SynonymDictionary", "SiteDotCom");
 
-	private List<String> ignoreMembers = Arrays.asList("SiteChangelist", "unfiled$public");
+	private List<String> ignoreMembers = Arrays.asList("SiteChangelist");
 	
 	private List<String> ignoreNamespaces = Arrays.asList("NVMContactWorld", "pca");
 

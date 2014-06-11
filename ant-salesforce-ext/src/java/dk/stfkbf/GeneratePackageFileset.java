@@ -67,11 +67,11 @@ public class GeneratePackageFileset extends Task {
 	public static void main(String[] args){
 		GeneratePackageFileset builder = new GeneratePackageFileset();
 		
-		builder.setUsername(args[0]);
-		builder.setPassword(args[1]);
-		builder.setAuthEndpoint(args[2]);
-		builder.setOutputPath(args[3]);
-		builder.setRepositoryPath(args[4]);
+		builder.setUsername("");
+		builder.setPassword("");
+		builder.setAuthEndpoint("");
+		builder.setOutputPath("");
+		builder.setRepositoryPath("");
 		
 		builder.execute();
 	}
@@ -214,7 +214,7 @@ public class GeneratePackageFileset extends Task {
 					
 					//If the folder itself has not been added, add the folder.
 					
-					File folderFile = new File(repositoryItem.getPath().replace(repositoryItem.getName(), folderName + "-meta.xml"));
+					File folderFile = new File(repositoryItem.getPath().replace(folderName, "").replace(repositoryItem.getName(), folderName + "-meta.xml"));
 					
 					if (!packageTypeMembers.contains(folderName) && folderFile.exists())
 						packageTypeMembers.add(folderName);

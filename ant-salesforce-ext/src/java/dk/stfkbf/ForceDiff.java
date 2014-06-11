@@ -51,7 +51,7 @@ public class ForceDiff extends Task{
 	private String outputDir;
 	
 	private Pattern filterPattern = Pattern.compile("package.xml|DS_Store|.svn");
-	private Pattern contentPattern = Pattern.compile("\\.resource$|\\.cls$|\\.page$|\\.trigger$|\\.component$|\\.email");
+	private Pattern contentPattern = Pattern.compile("\\.resource$|\\.cls$|\\.page$|\\.trigger$|\\.component$|\\.email$");
 	private DirDiffNode topDiffNode = new DirDiffNode("root");
 	private TreeSet<String> typeSet;
 
@@ -77,17 +77,19 @@ public class ForceDiff extends Task{
 
 	public static void main(String[] argv) {
 		ForceDiff diff = new ForceDiff();
-		diff.setSourceDir("/Users/blixen/git/dev-env/project/src");
-		diff.setTargetDir("/Users/blixen/Developer/salesforce_ant_29/temp");
+		diff.setSourceDir("D:/git/intactv2/src");
+		diff.setTargetDir("D:/git/temp");
 		diff.setMetadataTypes("all");
-		diff.setOutputDir("/Users/blixen/Developer/salesforce_ant_29/output");
+		diff.setOutputDir("D:/git/diff");
 		diff.execute();
 	}
 
 	private FileFilter fileFilter = new FileFilter() {
 		public boolean accept(File file) {
+			File metaFile = new File(file.getAbsoluteFile() + "-meta.xml");
 	        return !filterPattern.matcher(file.getName()).find() && 
-	        		!contentPattern.matcher(file.getName()).find();
+	        		!contentPattern.matcher(file.getName()).find() &&
+	        		!(metaFile.exists() && file.isFile());
 		}
 	};
 	
@@ -482,7 +484,7 @@ public class ForceDiff extends Task{
 		objDiffNode.setFileName(sourceFile.getName());
 		objDiffNode.setMetadataClassName(sourceData.getClass().getName());
 
-    if (isMetadataEqual && !isContentEqual) {
+		if (isMetadataEqual && !isContentEqual) {
 			ObjDiffNode.AttrDiffNode attrDiffNode = new ObjDiffNode.AttrDiffNode("Content");
 			attrDiffNode.setSourceValue("Content 1");;
 			attrDiffNode.setTargetValue("Content 2");
@@ -596,7 +598,8 @@ public class ForceDiff extends Task{
 			Metadata metadata = metadataClass.newInstance();
 			XmlInputStream xmlInputStream = new XmlInputStream();
 			//TODO: SB-F: Is this really the way?
-			content = content.replace("UTF-8", "UTF_8");			
+			content = content.replace("UTF-8", "UTF_8");
+			//content = content.replace("ISO-8859-1", "ISO_8859_1");
 			xmlInputStream.setInput(IOUtils.toInputStream(content), "UTF-8");
 			metadata.load(xmlInputStream, typeMapper);
 			return metadata;
