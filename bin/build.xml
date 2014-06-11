@@ -18,9 +18,9 @@
       <fileset dir="lib">
         <include name="**/diff_match_patch-current.jar"/> 
         <include name="**/commons-io-2.4.jar"/> 
-        <include name="**/force-metadata-api-30.0.0.jar"/> 
+        <include name="**/force-metadata-api-31.0.0.jar"/> 
         <include name="**/force-wsc-31.0.0.jar"/>        
-        <include name="**/ant-salesforce-ext-30.jar"/>
+        <include name="**/ant-salesforce-ext-31.jar"/>
       </fileset>
     </classpath>
    </taskdef>
