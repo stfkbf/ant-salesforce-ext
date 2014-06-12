@@ -122,6 +122,7 @@ public class PrepareFileset extends Task {
 								}
 							} else {
 								System.out.println(folderName + "." + entry + " not matched");
+								done = true;
 							}
 							}
 						}
