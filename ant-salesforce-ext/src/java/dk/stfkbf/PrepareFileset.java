@@ -16,6 +16,7 @@ public class PrepareFileset extends Task {
 	private String filesetPath;	
 	private String targetPath;
 	private String properties;
+	private String fixVersions = "true";
 
 	public HashMap<String, HashMap<String, HashMap<String, String>>> configuration = 
 			new HashMap<String, HashMap<String, HashMap<String, String>>>(); 
@@ -39,6 +40,14 @@ public class PrepareFileset extends Task {
 	public void setTargetPath(String targetPath) {
 		this.targetPath = targetPath;
 	}	
+
+	public String getFixVersions() {
+		return fixVersions;
+	}
+
+	public void setFixVersions(String fixVersions) {
+		this.fixVersions = fixVersions;
+	}
 
 	public String getProperties() {
 		return properties;
@@ -75,19 +84,45 @@ public class PrepareFileset extends Task {
 						String content = FileUtils.readFileToString(file);
 
 						for (String entry : configuration.get(folderName).keySet()){
-							String expression = configuration.get(folderName).get(entry).get("expression");						
-							Pattern pattern = Pattern.compile(expression);
+							String expression = configuration.get(folderName).get(entry).get("expression");							
+							Pattern pattern = Pattern.compile(expression, Pattern.DOTALL);
 
+							boolean checkMissing = false;
+							Pattern patternMissing = null;
+							Matcher matcherMissing = null;
+							
+							if (configuration.get(folderName).get(entry).containsKey("missing")){
+								checkMissing = true;
+								String expressionMissing = configuration.get(folderName).get(entry).get("missing");
+								
+								patternMissing = Pattern.compile(expressionMissing, Pattern.DOTALL);
+								matcherMissing = patternMissing.matcher(content);
+							}
+								
 							Matcher matcher = pattern.matcher(content);
+							
+							boolean done = false;
+							
+							while (!done){
 							if (matcher.matches()){
 								int group = Integer.parseInt(configuration.get(folderName).get(entry).get("group"));
 								String replacement = configuration.get(folderName).get(entry).get("replacement");
 
-								content = content.replace(matcher.group(group), replacement);
+								String match = matcher.group(group);
 								
-								System.out.println(folderName + "." + entry + " matched");
+								if (checkMissing)
+									matcherMissing = patternMissing.matcher(match);
+								
+								if (!checkMissing || matcherMissing.matches()) {
+									content = content.replace(matcher.group(group), replacement);
+
+									System.out.println(folderName + "." + entry + " matched");
+								} else {
+									System.out.println(folderName + "." + entry + " not matched (secondary)");
+								}
 							} else {
 								System.out.println(folderName + "." + entry + " not matched");
+							}
 							}
 						}
 
@@ -96,35 +131,36 @@ public class PrepareFileset extends Task {
 				}
 			}
 
-			// Fix flows
-			File filesetFolder = new File(this.getFilesetPath() + "/flows");
-			File targetFolder = new File(this.getTargetPath() + "/flows");
+			if (fixVersions.equals("true2")){
+				// Fix flows
+				File filesetFolder = new File(this.getFilesetPath() + "/flows");
+				File targetFolder = new File(this.getTargetPath() + "/flows");
 
-			Integer maxVersion = 0;
-			Integer targetMaxVersion = 0;
-			if (filesetFolder.exists() && targetFolder.exists()){
-				for (File flow : filesetFolder.listFiles()){
-					Matcher matcher = pattern.matcher(flow.getName());
-					if (matcher.matches() && !flowMap.containsKey(matcher.group(1))){
-						Integer currentVersion = Integer.decode(matcher.group(2));
+				Integer maxVersion = 0;
+				Integer targetMaxVersion = 0;
+				if (filesetFolder.exists() && targetFolder.exists()){
+					for (File flow : filesetFolder.listFiles()){
+						Matcher matcher = pattern.matcher(flow.getName());
+						if (matcher.matches() && !flowMap.containsKey(matcher.group(1))){
+							Integer currentVersion = Integer.decode(matcher.group(2));
 
-						maxVersion = findMaxVersion(filesetFolder.getAbsolutePath(), matcher.group(1), currentVersion);
+							maxVersion = findMaxVersion(filesetFolder.getAbsolutePath(), matcher.group(1), currentVersion);
 
-						if (maxVersion == currentVersion){
-							targetMaxVersion = findMaxVersion(targetFolder.getAbsolutePath(), matcher.group(1), currentVersion);
-							flowMap.put(matcher.group(1), targetMaxVersion + 1);						
-							// Rename the file
+							if (maxVersion == currentVersion){
+								targetMaxVersion = findMaxVersion(targetFolder.getAbsolutePath(), matcher.group(1), currentVersion);
+								flowMap.put(matcher.group(1), targetMaxVersion + 1);						
+								// Rename the file
 
-							File newFlow = new File(this.getFilesetPath() + "/flows/" + matcher.group(1) + "-" + (targetMaxVersion + 1) + ".flow");
-							FileUtils.moveFile(flow, newFlow);
-						} else {
-							// Delete the file
-							flow.delete();
-						}
-					}				
+								File newFlow = new File(this.getFilesetPath() + "/flows/" + matcher.group(1) + "-" + (targetMaxVersion + 1) + ".flow");
+								FileUtils.moveFile(flow, newFlow);
+							} else {
+								// Delete the file
+								flow.delete();
+							}
+						}				
+					}
 				}
 			}
-			
 			// Fix milestones
 			// File milestoneFolder = new File(target + "/" + )
 		} catch (Exception e){
