@@ -2,6 +2,7 @@ package dk.stfkbf;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -61,8 +62,8 @@ public class PrepareFileset extends Task {
 		PrepareFileset fileset = new PrepareFileset();
 
 		fileset.setFilesetPath("D:\\git\\output\\upsert");
-		fileset.setTargetPath("D:\\git\\temp");
-		fileset.setProperties("/Users/blixen/Developer/salesforce_ant_29/prepareFileset.properties");
+		fileset.setTargetPath("D:\\git\\output\\upsert");
+		fileset.setProperties("D:\\git\\ant\\prepareFileset.properties");
 		fileset.execute();
 	}
 
@@ -88,42 +89,33 @@ public class PrepareFileset extends Task {
 							Pattern pattern = Pattern.compile(expression, Pattern.DOTALL);
 
 							boolean checkMissing = false;
-							Pattern patternMissing = null;
-							Matcher matcherMissing = null;
-							
+							String expressionMissing = "";
+
 							if (configuration.get(folderName).get(entry).containsKey("missing")){
 								checkMissing = true;
-								String expressionMissing = configuration.get(folderName).get(entry).get("missing");
-								
-								patternMissing = Pattern.compile(expressionMissing, Pattern.DOTALL);
-								matcherMissing = patternMissing.matcher(content);
+								expressionMissing = configuration.get(folderName).get(entry).get("missing");
 							}
-								
-							Matcher matcher = pattern.matcher(content);
-							
-							boolean done = false;
-							
-							while (!done){
-							if (matcher.matches()){
+
+							String original = content;
+
+							Matcher matcher = pattern.matcher(original);
+							while (matcher.find()){								
 								int group = Integer.parseInt(configuration.get(folderName).get(entry).get("group"));
-								String replacement = configuration.get(folderName).get(entry).get("replacement");
 
 								String match = matcher.group(group);
-								
-								if (checkMissing)
-									matcherMissing = patternMissing.matcher(match);
-								
-								if (!checkMissing || matcherMissing.matches()) {
-									content = content.replace(matcher.group(group), replacement);
+								Pattern missingPattern = Pattern.compile(expressionMissing, Pattern.DOTALL);
+								Matcher missingMatcher = missingPattern.matcher(match);
 
-									System.out.println(folderName + "." + entry + " matched");
+								if(!checkMissing || !missingMatcher.matches()){
+									String replacement = configuration.get(folderName).get(entry).get("replacement");
+
+									content = content.replace(match, replacement);
+
+									System.out.println(file.getName() + " " + folderName + "." + entry + " matched");
 								} else {
-									System.out.println(folderName + "." + entry + " not matched (secondary)");
+									System.out.println(file.getName() + " " + folderName + "." + entry + " not matched (secondary)");
+
 								}
-							} else {
-								System.out.println(folderName + "." + entry + " not matched");
-								done = true;
-							}
 							}
 						}
 
