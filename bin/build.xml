@@ -4,6 +4,8 @@
     <property file="build.properties.${branch}"/>
     <property environment="env"/>
 
+    <taskdef uri="antlib:com.salesforce" resource="com/salesforce/antlib.xml" classpath="lib/ant-salesforce-${api}.jar"/>
+
     <taskdef resource="org/eclipse/jgit/ant/ant-tasks.properties">
        <classpath>
          <pathelement location="lib/org.eclipse.jgit-3.3.0.201403021825-r.jar"/>
@@ -11,16 +13,14 @@
        </classpath>
    </taskdef>
 
-   <taskdef uri="antlib:com.salesforce" resource="com/salesforce/antlib.xml" classpath="lib/ant-salesforce-31.jar"/>
-
    <taskdef name="forceDiff" classname="dk.stfkbf.ForceDiff" >
      <classpath>
       <fileset dir="lib">
         <include name="**/diff_match_patch-current.jar"/> 
         <include name="**/commons-io-2.4.jar"/> 
-        <include name="**/force-metadata-api-31.0.0.jar"/> 
+        <include name="**/force-metadata-api-${api}.0.0.jar"/> 
         <include name="**/force-wsc-31.0.0.jar"/>        
-        <include name="**/ant-salesforce-ext-31.jar"/>
+        <include name="**/ant-salesforce-ext-${api}.jar"/>
       </fileset>
     </classpath>
    </taskdef>
@@ -41,7 +41,12 @@
     <taskdef name="generatePackage" classname="dk.stfkbf.GeneratePackageOrg" >
      <classpath>
       <fileset dir="lib">
-        <include name="**/*.jar"/>
+        <include name="**/diff_match_patch-current.jar"/> 
+        <include name="**/commons-io-2.4.jar"/> 
+        <include name="**/force-metadata-api-${api}.0.0.jar"/> 
+        <include name="**/force-partner-api-${api}.0.0.jar"/> 
+        <include name="**/force-wsc-31.0.0.jar"/>        
+        <include name="**/ant-salesforce-ext-${api}.jar"/>
       </fileset>
     </classpath>
     </taskdef>
@@ -49,7 +54,12 @@
     <taskdef name="generatePackageFileset" classname="dk.stfkbf.GeneratePackageFileset" >
      <classpath>
       <fileset dir="lib">
-        <include name="**/*.jar"/>
+        <include name="**/diff_match_patch-current.jar"/> 
+        <include name="**/commons-io-2.4.jar"/> 
+        <include name="**/force-metadata-api-${api}.0.0.jar"/> 
+        <include name="**/force-partner-api-${api}.0.0.jar"/> 
+        <include name="**/force-wsc-31.0.0.jar"/>        
+        <include name="**/ant-salesforce-ext-${api}.jar"/>
       </fileset>
     </classpath>
     </taskdef>
@@ -57,7 +67,12 @@
     <taskdef name="prepareFileset" classname="dk.stfkbf.PrepareFileset" >
      <classpath>
       <fileset dir="lib">
-        <include name="**/*.jar"/>
+        <include name="**/diff_match_patch-current.jar"/> 
+        <include name="**/commons-io-2.4.jar"/> 
+        <include name="**/force-metadata-api-${api}.0.0.jar"/> 
+        <include name="**/force-partner-api-${api}.0.0.jar"/> 
+        <include name="**/force-wsc-31.0.0.jar"/>        
+        <include name="**/ant-salesforce-ext-${api}.jar"/>
       </fileset>
     </classpath>
     </taskdef>
@@ -65,7 +80,14 @@
     <taskdef name="deleteFromGit" classname="dk.stfkbf.DeleteFromGit" >
      <classpath>
       <fileset dir="lib">
-        <include name="**/*.jar"/>
+        <include name="**/diff_match_patch-current.jar"/> 
+        <include name="**/commons-io-2.4.jar"/> 
+        <include name="**/force-metadata-api-${api}.0.0.jar"/> 
+        <include name="**/force-partner-api-${api}.0.0.jar"/> 
+        <include name="**/force-wsc-31.0.0.jar"/>        
+        <include name="**/ant-salesforce-ext-${api}.jar"/>
+        <include name="**/org.eclipse.jgit-3.3.0.201403021825-r.jar"/>
+        <include name="**/org.eclipse.jgit.ant-3.3.0.201403021825-r.jar"/>   
       </fileset>
     </classpath>
     </taskdef>
@@ -73,7 +95,12 @@
     <taskdef name="deleteChangedCase" classname="dk.stfkbf.DeleteChangedCase" >
      <classpath>
       <fileset dir="lib">
-        <include name="**/*.jar"/>
+        <include name="**/diff_match_patch-current.jar"/> 
+        <include name="**/commons-io-2.4.jar"/> 
+        <include name="**/force-metadata-api-${api}.0.0.jar"/> 
+        <include name="**/force-partner-api-${api}.0.0.jar"/> 
+        <include name="**/force-wsc-31.0.0.jar"/>        
+        <include name="**/ant-salesforce-ext-${api}.jar"/>
       </fileset>
     </classpath>
     </taskdef>
@@ -83,21 +110,6 @@
           <forceDiff sourceDir="${git.source}" targetDir="${git.temp}" outputDir="D:\git\diff" metadataTypes="all" />
     </target>
     
-    <target name="testDeploy">
-      <generatePackageFileset username="${sf.username}" 
-      			      password="${sf.password}" 
-      			      authEndpoint="${sf.serverurl}/services/Soap/u/30.0" 
-      			      outputPath="D:\git\test" 
-      			      repositoryPath="D:\git\test"/>
-      <!--
-      <sf:deploy username="${sf.username}" 
-      			 password="${sf.password}" 
-      			 serverurl="${sf.serverurl}" 
-      			 maxPoll="${sf.maxPoll}" 
-      			 deployRoot="D:\git\test"/>
-     -->  
-    </target>
-
     <target name="switchBranch">
 	  <git-checkout src="${git.root}" branch="${branch}" />
     </target>
@@ -135,7 +147,7 @@
       		         gitRoot="${git.root}" />
 
       <!-- Copy the extracted files into the git repository -->      				   
-	  <copy todir="${git.source}" >
+      <copy todir="${git.source}" >
         <fileset dir="${git.temp}"/>
       </copy>      				 
     </target>
@@ -178,12 +190,13 @@
       </git>
     </target>    
     
-    <target name="createPackage">
-      <!-- Clean up temporary directories --> 
+    <target name="createPackage">      
+      <!-- Clean up temporary directories 
       <delete includeemptydirs="true">  
         <fileset dir="${git.temp}" includes="**/*"/>  
       </delete>  
-      
+      -->
+
       <delete includeemptydirs="true">  
         <fileset dir="${git.output}" includes="**/*"/>  
       </delete>  
@@ -201,8 +214,8 @@
       		       password="${sf.password}" 
       		       authEndpoint="${sf.serverurl}/services/Soap/u/30.0" 
       		       outputPath="${git.temp}" />
-
-      <!-- Retrieve the target org metadata -->
+      
+      <!-- Retrieve the target org metadata --> 
       <sf:retrieve username="${sf.username}" 
       			   password="${sf.password}" 
       			   serverurl="${sf.serverurl}" 
@@ -210,13 +223,27 @@
       			   retrieveTarget="${git.temp}" 
       			   unpackaged="${git.temp}/package.xml"/>  
       
+      <copy todir="${git.temp.source}" >
+        <fileset dir="${git.source}"/>
+      </copy> 
+
+      <prepareFileset filesetPath="${git.temp.source}" 
+      		      targetPath="${git.temp.source}"
+                      properties="prepareFileset-source-${api}.properties" 
+                      fixVersions="false"/>
+
+      <prepareFileset filesetPath="${git.temp}" 
+      		      targetPath="${git.temp}"
+                      properties="prepareFileset-target-${api}.properties" 
+                      fixVersions="false"/>
+      
       <!-- Compare the target org metadata against the git repository and extract the 
            differences -->      
-      <forceDiff sourceDir="${git.source}" targetDir="${git.temp}" outputDir="${git.output}" metadataTypes="all" />
+      <forceDiff sourceDir="${git.temp.source}" targetDir="${git.temp}" outputDir="${git.output}" metadataTypes="all" />
 
       <!-- Compare the target org metadata against the git repository and extract the 
            differences, looking only at Milestones -->      
-      <forceDiff sourceDir="${git.source}" targetDir="${git.temp}" outputDir="${git.output.ms}" metadataTypes="milestoneTypes" />
+      <forceDiff sourceDir="${git.temp.source}" targetDir="${git.temp}" outputDir="${git.output.ms}" metadataTypes="milestoneTypes" />
 
       <!-- Execute regular expressions in prepareFileset.properties against the metadata and
            correct the versioning of flows. -->      
@@ -241,9 +268,14 @@
         <fileset dir="${git.root}" includes="**/*.orig"/>  
 	  </delete>  
     </target>
-    
+
+    <target name="testPrepareFileset">
+      <prepareFileset filesetPath="${git.output.source}" 
+      		      targetPath="${git.temp}"
+                      properties="prepareFileset.properties" />
+    </target>    
+
     <target name="deployToOrg">
-    
       <!-- Deploy Milestones first -->
       <sf:deploy username="${sf.username}" 
       			 password="${sf.password}" 
@@ -264,6 +296,32 @@
       			 serverurl="${sf.serverurl}" 
       			 maxPoll="${sf.maxPoll}" 
       			 deployRoot="${git.output}/delete"/>
+    </target>
+
+    <target name="checkDeployment">    
+      <!-- Deploy Milestones first -->
+      <sf:deploy username="${sf.username}" 
+      			 password="${sf.password}" 
+      			 serverurl="${sf.serverurl}" 
+      			 maxPoll="${sf.maxPoll}" 
+                         apiVersion="30.0"
+      			 deployRoot="${git.output.ms}/upsert" checkOnly="true"/>
+     
+     <!-- Deploy the rest of the metadata -->
+     <sf:deploy username="${sf.username}" 
+      			 password="${sf.password}" 
+      			 serverurl="${sf.serverurl}" 
+      			 maxPoll="${sf.maxPoll}" 
+                         apiVersion="30.0"
+      			 deployRoot="${git.output}/upsert" checkOnly="true"/>
+      			 
+     <!-- Deploy destructive changes -->      			 
+      <sf:deploy username="${sf.username}" 
+      			 password="${sf.password}" 
+      			 serverurl="${sf.serverurl}" 
+      			 maxPoll="${sf.maxPoll}" 
+                         apiVersion="30.0"
+      			 deployRoot="${git.output}/delete" checkOnly="true"/>
     </target>
 
     <!-- Example tasks -->

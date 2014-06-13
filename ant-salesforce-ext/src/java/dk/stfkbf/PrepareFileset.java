@@ -63,6 +63,7 @@ public class PrepareFileset extends Task {
 		fileset.setFilesetPath("D:/git/output/upsert");
 		fileset.setTargetPath("D:/git/temp");
 		fileset.setProperties("D:/git/ant/prepareFileset.properties");
+
 		fileset.execute();
 	}
 
@@ -84,24 +85,37 @@ public class PrepareFileset extends Task {
 						String content = FileUtils.readFileToString(file);
 
 						for (String entry : configuration.get(folderName).keySet()){
-							String expression = configuration.get(folderName).get(entry).get("expression");						
+							String expression = configuration.get(folderName).get(entry).get("expression");							
 							Pattern pattern = Pattern.compile(expression, Pattern.DOTALL);
 
-							boolean done = false;
+							boolean checkMissing = false;
+							String expressionMissing = "";
 
-							while (!done) {
-								Matcher matcher = pattern.matcher(content);
-								if (matcher.matches()){
-									int group = Integer.parseInt(configuration.get(folderName).get(entry).get("group"));
+							if (configuration.get(folderName).get(entry).containsKey("missing")){
+								checkMissing = true;
+								expressionMissing = configuration.get(folderName).get(entry).get("missing");
+							}
+
+							String original = content;
+
+							Matcher matcher = pattern.matcher(original);
+							while (matcher.find()){								
+								int group = Integer.parseInt(configuration.get(folderName).get(entry).get("group"));
+
+								String match = matcher.group(group);
+								Pattern missingPattern = Pattern.compile(expressionMissing, Pattern.DOTALL);
+								Matcher missingMatcher = missingPattern.matcher(match);
+
+								if(!checkMissing || !missingMatcher.matches()){
 									String replacement = configuration.get(folderName).get(entry).get("replacement");
 
-									content = content.replace(matcher.group(group), replacement);
+									content = content.replace(match, replacement);
 
-									System.out.println(folderName + "." + entry + " matched");
+									System.out.println(file.getName() + " " + folderName + "." + entry + " matched");
 								} else {
-									System.out.println(folderName + "." + entry + " not matched");
-									done = true;
-								}							
+									System.out.println(file.getName() + " " + folderName + "." + entry + " not matched (secondary)");
+
+								}
 							}
 						}
 
