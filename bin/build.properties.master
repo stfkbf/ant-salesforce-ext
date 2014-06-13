@@ -9,7 +9,7 @@ sf.password =
 # Use 'https://test.salesforce.com for sandbox.
 sf.serverurl = https://login.salesforce.com
 
-sf.maxPoll = 20
+sf.maxPoll = 240
 
 # If your network requires an HTTP proxy, see http://ant.apache.org/manual/proxy.html for configuration.
 #
